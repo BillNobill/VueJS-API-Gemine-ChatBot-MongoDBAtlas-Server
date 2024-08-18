@@ -1,6 +1,6 @@
 {
   "engines": {
-    "node": "20.15.1mongo",
+    "node": "20.15.1",
     "npm": "10.7.0"
   },
   "name": "server",
