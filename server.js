@@ -1,18 +1,17 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
+import express, { json } from "express";
+import { connect, Schema, model } from "mongoose";
+import cors from "cors";
 require("dotenv").config();
-const { v4: uuidv4 } = require('uuid'); // Importa o módulo UUID para gerar IDs únicos
+import { v4 as uuidv4 } from 'uuid'; // Importa o módulo UUID para gerar IDs únicos
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(json());
 
 const uri =
   process.env.URI;
 
-mongoose
-  .connect(uri, {
+connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -20,7 +19,7 @@ mongoose
   .catch((err) => console.log("MongoDB connection error:", err));
 
 // Definindo o esquema e modelo de dados
-const messageSchema = new mongoose.Schema({
+const messageSchema = new Schema({
   sender: String,
   message: String,
   timestamp: {
@@ -29,12 +28,12 @@ const messageSchema = new mongoose.Schema({
   },
 });
 
-const conversationSchema = new mongoose.Schema({
+const conversationSchema = new Schema({
   conversation_id: { type: String, unique: true },
   messages: [messageSchema],
 });
 
-const Conversation = mongoose.model("Conversation", conversationSchema);
+const Conversation = model("Conversation", conversationSchema);
 
 app.post("/startConversation", async (req, res) => {
   try {
