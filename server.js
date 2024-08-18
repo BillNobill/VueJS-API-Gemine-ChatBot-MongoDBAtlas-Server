@@ -1,20 +1,19 @@
-import express, { json } from "express";
+import express from "express";
 import { connect, Schema, model } from "mongoose";
 import cors from "cors";
 require("dotenv").config();
-import { v4 as uuidv4 } from 'uuid'; // Importa o módulo UUID para gerar IDs únicos
+import { v4 as uuidv4 } from "uuid"; // Importa o módulo UUID para gerar IDs únicos
 
 const app = express();
 app.use(cors());
 app.use(json());
 
-const uri =
-  process.env.URI;
+const uri = process.env.URI;
 
 connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log("MongoDB connection error:", err));
 
