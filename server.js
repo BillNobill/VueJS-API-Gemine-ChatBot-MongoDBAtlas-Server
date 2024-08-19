@@ -1,7 +1,7 @@
 import express, { json } from "express";
 import { connect, Schema, model } from "mongoose";
 import cors from "cors";
-require("dotenv").config();
+import "dotenv/config";
 import { v4 as uuidv4 } from "uuid"; // Importa o módulo UUID para gerar IDs únicos
 
 const app = express();
