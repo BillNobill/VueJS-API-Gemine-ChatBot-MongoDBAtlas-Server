@@ -1,4 +1,4 @@
-import express from "express";
+import express, { json } from "express";
 import { connect, Schema, model } from "mongoose";
 import cors from "cors";
 require("dotenv").config();
