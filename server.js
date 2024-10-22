@@ -43,6 +43,17 @@ app.post("/startConversation", async (req, res) => {
   const { user_ip, city, region, country } = req.body;
 
   try {
+    // Verifica se já existe uma conversa com o mesmo IP
+    const existingConversation = await Conversation.findOne({ user_ip });
+
+    if (existingConversation) {
+      // Se já existir, retorna uma mensagem sem criar um novo usuário
+      return res
+        .status(200)
+        .json({ message: "Conversa já existe para este IP." });
+    }
+
+    // Caso não exista, cria uma nova conversa
     const conversation = new Conversation({
       user_ip,
       city,
@@ -52,7 +63,6 @@ app.post("/startConversation", async (req, res) => {
     });
     await conversation.save();
     res.status(200).json({ message: "Iniciou! Conversa criada com sucesso!" });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error starting new conversation" });
