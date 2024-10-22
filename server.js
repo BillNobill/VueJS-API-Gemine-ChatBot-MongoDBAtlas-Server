@@ -1,19 +1,19 @@
 import express, { json } from "express";
-import { connect, Schema, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose"; // Importando Schema e model
+import "dotenv/config"; // A importação do dotenv foi unificada
 import cors from "cors";
-import "dotenv/config";
-import { v4 as uuidv4 } from "uuid"; // Importa o módulo UUID para gerar IDs únicos
 
 const app = express();
 app.use(cors());
-app.use(json());
+app.use(express.json());
 
 const uri = process.env.URI;
 
-connect(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose
+  .connect(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log("MongoDB connection error:", err));
 
@@ -27,40 +27,52 @@ const messageSchema = new Schema({
   },
 });
 
+// Ajustando o esquema da conversa para usar o IP como chave principal
 const conversationSchema = new Schema({
-  conversation_id: { type: String, unique: true },
+  user_ip: { type: String, required: true }, // Alterado para usar o IP como chave
   messages: [messageSchema],
 });
 
 const Conversation = model("Conversation", conversationSchema);
 
+// Rota para iniciar uma nova conversa
 app.post("/startConversation", async (req, res) => {
+  const user_ip = req.body.user_ip; // Obtendo o IP do corpo da requisição
+  console.log(user_ip);
+
   try {
-    const conversation_id = uuidv4(); // Gera um novo ID único para a nova conversa
-    const conversation = new Conversation({ conversation_id, messages: [] });
+    const conversation = new Conversation({ user_ip, messages: [] });
     await conversation.save();
-    res.status(200).json({ conversation_id });
+    res.status(200).json({ user_ip });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error starting new conversation" });
   }
 });
 
+// Rota para salvar a conversa
 app.post("/saveConversation", async (req, res) => {
-  const { conversation_id, messages } = req.body;
+  const { user_ip, messages } = req.body;
 
+  // Verifica se o user_ip é válido
+  if (!user_ip) {
+    return res.status(400).json({ error: "User IP is required" });
+  }
   try {
-    // Encontra ou cria uma nova conversa com o ID fornecido
-    let conversation = await Conversation.findOne({ conversation_id });
+    // Verifica se a conversa já existe com base no user_ip
+    let conversation = await Conversation.findOne({ user_ip });
 
     if (!conversation) {
-      conversation = new Conversation({ conversation_id, messages });
+      // Se não existir, cria uma nova conversa
+      conversation = new Conversation({ user_ip, messages });
     } else {
-      // Adiciona as novas mensagens ao histórico existente
-      conversation.messages = [...conversation.messages, ...messages];
+      // Se existir, adiciona as novas mensagens
+      conversation.messages.push(...messages);
     }
 
+    // Salva a conversa (nova ou atualizada)
     await conversation.save();
-    res.status(200).send("Conversa salva com sucesso.");
+    res.status(200).json({ user_ip, messages: conversation.messages });
   } catch (error) {
     res.status(500).send("Erro ao salvar a conversa: " + error.message);
   }
