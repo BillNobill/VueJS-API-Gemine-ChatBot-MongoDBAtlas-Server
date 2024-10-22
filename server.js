@@ -30,6 +30,9 @@ const messageSchema = new Schema({
 // Ajustando o esquema da conversa para usar o IP como chave principal
 const conversationSchema = new Schema({
   user_ip: { type: String, required: true }, // Alterado para usar o IP como chave
+  city: String,
+  region: String,
+  country: String,
   messages: [messageSchema],
 });
 
@@ -37,13 +40,19 @@ const Conversation = model("Conversation", conversationSchema);
 
 // Rota para iniciar uma nova conversa
 app.post("/startConversation", async (req, res) => {
-  const user_ip = req.body.user_ip; // Obtendo o IP do corpo da requisição
-  console.log(user_ip);
+  const { user_ip, city, region, country } = req.body;
 
   try {
-    const conversation = new Conversation({ user_ip, messages: [] });
+    const conversation = new Conversation({
+      user_ip,
+      city,
+      region,
+      country,
+      messages: [],
+    });
     await conversation.save();
-    res.status(200).json({ user_ip });
+    res.status(200).json({ message: "Iniciou! Conversa criada com sucesso!" });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error starting new conversation" });
