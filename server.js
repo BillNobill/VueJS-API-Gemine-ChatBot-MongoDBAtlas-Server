@@ -29,7 +29,7 @@ const messageSchema = new Schema({
 
 // Ajustando o esquema da conversa para usar o IP como chave principal
 const conversationSchema = new Schema({
-  user_ip: { type: String, required: true }, // Alterado para usar o IP como chave
+  user_ip: { type: String, unique: true }, // Alterado para usar o IP como chave
   city: String,
   region: String,
   country: String,
@@ -46,13 +46,12 @@ app.post("/startConversation", async (req, res) => {
     // Verifica se já existe uma conversa com o mesmo IP
     const existingConversation = await Conversation.findOne({ user_ip });
 
-    if (existingConversation) {
+    if (existingConversation != null) {
       // Se já existir, retorna uma mensagem sem criar um novo usuário
       return res
         .status(200)
         .json({ message: "Conversa já existe para este IP." });
     }
-
     // Caso não exista, cria uma nova conversa
     const conversation = new Conversation({
       user_ip,
@@ -77,6 +76,7 @@ app.post("/saveConversation", async (req, res) => {
   if (!user_ip) {
     return res.status(400).json({ error: "User IP is required" });
   }
+
   try {
     // Verifica se a conversa já existe com base no user_ip
     let conversation = await Conversation.findOne({ user_ip });
@@ -86,12 +86,12 @@ app.post("/saveConversation", async (req, res) => {
       conversation = new Conversation({ user_ip, messages });
     } else {
       // Se existir, adiciona as novas mensagens
-      conversation.messages.push(...messages);
+      conversation.messages = [...conversation.messages, ...messages];
     }
 
     // Salva a conversa (nova ou atualizada)
     await conversation.save();
-    res.status(200).json({ user_ip, messages: conversation.messages });
+    res.status(200).json("Conversa salva com sucesso.");
   } catch (error) {
     res.status(500).send("Erro ao salvar a conversa: " + error.message);
   }
