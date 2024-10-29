@@ -97,6 +97,35 @@ app.post("/saveConversation", async (req, res) => {
   }
 });
 
+// Rota para obter o histórico da conversa com base no user_ip
+app.get("/getConversation", async (req, res) => {
+  const user_ip = req.query.user_ip;
+
+  // Verifica se o user_ip foi passado
+  if (!user_ip) {
+    return res.status(400).json({ error: "User IP is required" });
+  }
+
+  try {
+    // Busca a conversa no banco de dados
+    const conversation = await Conversation.findOne({ user_ip });
+
+    // Verifica se a conversa foi encontrada
+    if (!conversation) {
+      return res
+        .status(404)
+        .json({ error: "No conversation found for this IP" });
+    }
+
+    // Retorna o histórico de mensagens
+    res.status(200).json(conversation.messages);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Error fetching conversation: " + error.message });
+  }
+});
+
 app.get("/", (req, res) => {
   res.send("Server is up and running");
 });
